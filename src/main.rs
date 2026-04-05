@@ -1,18 +1,18 @@
 use core_foundation::runloop::{kCFRunLoopDefaultMode, CFRunLoop};
 use core_graphics::event::{
-  CGEventFlags, CGEventTap, CGEventTapLocation, CGEventTapOptions,
+  CGEventTap, CGEventTapLocation, CGEventTapOptions,
   CGEventTapPlacement, CGEventType, CallbackResult,
 };
 use core_graphics::geometry::CGPoint;
 
 const TOP_LIMIT: f64 = 8.0;
-const ENABLE_SHIFT_BYPASS: bool = true;
+const ENABLE_SHIFT_BYPASS: bool = false;
 
-// Helper to get raw value from CGEventType for comparison
-fn event_type_to_u32(e: CGEventType) -> u32 {
-  // CGEventType is a u32 enum, so we can cast directly
-  e as u32
-}
+// Use Vec since that's what the API requires
+static EVENTS_OF_INTEREST: &[CGEventType] = &[
+  CGEventType::MouseMoved,
+  CGEventType::LeftMouseDragged,
+];
 
 fn main() {
   // Check accessibility permissions
@@ -21,51 +21,43 @@ fn main() {
     std::process::exit(1);
   }
 
-  let events_of_interest =
-    vec![CGEventType::MouseMoved, CGEventType::LeftMouseDragged];
-
   // Use CGEventTap::with_enabled which takes a closure to run the event loop
   let result = CGEventTap::with_enabled(
     CGEventTapLocation::HID,
     CGEventTapPlacement::HeadInsertEventTap,
     CGEventTapOptions::Default,
-    events_of_interest,
+    EVENTS_OF_INTEREST.to_vec(),
     |_proxy: *const std::ffi::c_void,
      etype: CGEventType,
      event: &core_graphics::event::CGEvent| {
-      let etype_val = event_type_to_u32(etype);
-
       // Re-enable tap if it was disabled
-      // Note: This would require accessing the tap from a static context
-      // For simplicity, we just keep the event and let the system handle it
-      if etype_val == CGEventType::TapDisabledByTimeout as u32
-        || etype_val == CGEventType::TapDisabledByUserInput as u32
-      {
+      if matches!(
+        etype,
+        CGEventType::TapDisabledByTimeout | CGEventType::TapDisabledByUserInput
+      ) {
         return CallbackResult::Keep;
       }
 
       // Only process mouse moved and left mouse dragged
-      if etype_val != CGEventType::MouseMoved as u32
-        && etype_val != CGEventType::LeftMouseDragged as u32
-      {
+      if !matches!(etype, CGEventType::MouseMoved | CGEventType::LeftMouseDragged) {
         return CallbackResult::Keep;
       }
 
       // Shift bypass
-      if ENABLE_SHIFT_BYPASS {
-        let flags = event.get_flags();
-        if flags.contains(CGEventFlags::CGEventFlagShift) {
-          return CallbackResult::Keep;
-        }
+      if ENABLE_SHIFT_BYPASS
+        && event.get_flags().contains(core_graphics::event::CGEventFlags::CGEventFlagShift)
+      {
+        return CallbackResult::Keep;
       }
 
+      // Early exit: if mouse is already above the limit, do nothing
       let location = event.location();
-
-      // If cursor would go above limit, modify the event to clamp it
-      if location.y < TOP_LIMIT {
-        let new_location = CGPoint::new(location.x, TOP_LIMIT);
-        event.set_location(new_location);
+      if location.y >= TOP_LIMIT {
+        return CallbackResult::Keep;
       }
+
+      // Clamp cursor to limit
+      event.set_location(CGPoint::new(location.x, TOP_LIMIT));
 
       CallbackResult::Keep
     },
@@ -89,15 +81,11 @@ fn main() {
 // We check by attempting to create an event tap with a short timeout
 fn is_process_trusted() -> bool {
   // Try to create an event tap - this will fail if accessibility is not enabled
-  let events_of_interest =
-    vec![CGEventType::MouseMoved, CGEventType::LeftMouseDragged];
-
-  // Use CGEventTap::with_enabled to create the tap and run briefly
   let result = CGEventTap::with_enabled(
     CGEventTapLocation::HID,
     CGEventTapPlacement::HeadInsertEventTap,
     CGEventTapOptions::Default,
-    events_of_interest,
+    EVENTS_OF_INTEREST.to_vec(),
     |_proxy, _etype, _event| CallbackResult::Keep,
     || {
       // Run the run loop for a short time to allow the tap to be created
