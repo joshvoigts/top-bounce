@@ -5,7 +5,7 @@ A Rust reimplementation of [TopBounce](https://github.com/joshvoigts/TopBounce) 
 ## Installing
 
 ```bash
-cargo install --path .
+cargo install top-bounce
 ```
 
 ## Running at Login
@@ -37,6 +37,9 @@ launchctl load ~/Library/LaunchAgents/com.topbounce.agent.plist
 
 ## Notes
 
-- Requires **Accessibility permissions** (System Settings → Privacy & Security → Accessibility).
+- Requires **Accessibility permissions**:
+  1. Open **System Settings → Privacy & Security → Accessibility**
+  2. Click the **+** button
+  3. Navigate to `~/.cargo/bin/top-bounce` and add it
 - Hold **Shift** while moving the mouse to temporarily bypass the restriction.
 - The top limit is set to 8 pixels by default.
