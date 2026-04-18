@@ -14,25 +14,33 @@ To run `top-bounce` automatically in the background at startup, create a LaunchA
 
 ```bash
 mkdir -p ~/Library/LaunchAgents
-cat > ~/Library/LaunchAgents/com.topbounce.agent.plist << 'EOF'
+cat > ~/Library/LaunchAgents/com.joshvoigts.topbounce.plist << 'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.topbounce.agent</string>
+    <string>com.joshvoigts.topbounce</string>
     <key>ProgramArguments</key>
     <array>
-        <string>~/.cargo/bin/top-bounce</string>
+        <string>/Users/joshvoigts/.cargo/bin/top-bounce</string>
     </array>
     <key>RunAtLoad</key>
-    <true/>
-    <key>Hidden</key>
     <true/>
 </dict>
 </plist>
 EOF
-launchctl load ~/Library/LaunchAgents/com.topbounce.agent.plist
+launchctl enable gui/$(id -u)/com.joshvoigts.topbounce
+launchctl load ~/Library/LaunchAgents/com.joshvoigts.topbounce.plist
+```
+
+**Note:** On macOS Big Sur and later, `enable` must be called before `load`.
+
+To stop the service:
+
+```bash
+launchctl disable gui/$(id -u)/com.joshvoigts.topbounce
+launchctl stop com.joshvoigts.topbounce
 ```
 
 ## Notes
