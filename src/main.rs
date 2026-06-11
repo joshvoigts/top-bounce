@@ -9,10 +9,8 @@ const TOP_LIMIT: f64 = 8.0;
 const ENABLE_SHIFT_BYPASS: bool = true;
 
 // Use Vec since that's what the API requires
-static EVENTS_OF_INTEREST: &[CGEventType] = &[
-  CGEventType::MouseMoved,
-  CGEventType::LeftMouseDragged,
-];
+static EVENTS_OF_INTEREST: &[CGEventType] =
+  &[CGEventType::MouseMoved, CGEventType::LeftMouseDragged];
 
 fn main() {
   // Check accessibility permissions
@@ -33,19 +31,25 @@ fn main() {
       // Re-enable tap if it was disabled
       if matches!(
         etype,
-        CGEventType::TapDisabledByTimeout | CGEventType::TapDisabledByUserInput
+        CGEventType::TapDisabledByTimeout
+          | CGEventType::TapDisabledByUserInput
       ) {
         return CallbackResult::Keep;
       }
 
       // Only process mouse moved and left mouse dragged
-      if !matches!(etype, CGEventType::MouseMoved | CGEventType::LeftMouseDragged) {
+      if !matches!(
+        etype,
+        CGEventType::MouseMoved | CGEventType::LeftMouseDragged
+      ) {
         return CallbackResult::Keep;
       }
 
       // Shift bypass
       if ENABLE_SHIFT_BYPASS
-        && event.get_flags().contains(core_graphics::event::CGEventFlags::CGEventFlagShift)
+        && event.get_flags().contains(
+          core_graphics::event::CGEventFlags::CGEventFlagShift,
+        )
       {
         return CallbackResult::Keep;
       }
