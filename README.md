@@ -56,3 +56,7 @@ rm ~/Library/LaunchAgents/com.joshvoigts.topbounce.plist
 - Hold **Shift** while moving the mouse to temporarily bypass the restriction.
 - The top limit is set to 8 pixels by default.
 - Does not seem to work properly on macs with the "notch".
+
+## Troubleshooting
+
+Go to console app and type "bounce" and then enter in the search box.
