@@ -51,6 +51,8 @@ rm ~/Library/LaunchAgents/com.joshvoigts.topbounce.plist
   1. Open **System Settings → Privacy & Security → Accessibility**
   2. Click the **+** button
   3. Navigate to `~/.cargo/bin/top-bounce` and add it
+  4. Go to "Login Items & Extensions"
+  5. Ensure top-bounce is enabled (sometimes toggling it can help)
 - Hold **Shift** while moving the mouse to temporarily bypass the restriction.
 - The top limit is set to 8 pixels by default.
 - Does not seem to work properly on macs with the "notch".
