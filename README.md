@@ -30,17 +30,19 @@ cat > ~/Library/LaunchAgents/com.joshvoigts.topbounce.plist << 'EOF'
 </dict>
 </plist>
 EOF
-launchctl enable gui/$(id -u)/com.joshvoigts.topbounce
-launchctl load ~/Library/LaunchAgents/com.joshvoigts.topbounce.plist
+launchctl bootstrap gui/$(id -u) ~/Library/LaunchAgents/com.joshvoigts.topbounce.plist
 ```
 
-**Note:** On macOS Big Sur and later, `enable` must be called before `load`.
-
-To stop the service:
+### Stop and remove from login
 
 ```bash
-launchctl disable gui/$(id -u)/com.joshvoigts.topbounce
-launchctl stop com.joshvoigts.topbounce
+launchctl bootout gui/$(id -u) ~/Library/LaunchAgents/com.joshvoigts.topbounce.plist
+```
+
+### Uninstall
+
+```bash
+rm ~/Library/LaunchAgents/com.joshvoigts.topbounce.plist
 ```
 
 ## Notes
@@ -51,3 +53,4 @@ launchctl stop com.joshvoigts.topbounce
   3. Navigate to `~/.cargo/bin/top-bounce` and add it
 - Hold **Shift** while moving the mouse to temporarily bypass the restriction.
 - The top limit is set to 8 pixels by default.
+- Does not seem to work properly on macs with the "notch".

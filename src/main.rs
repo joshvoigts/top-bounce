@@ -6,7 +6,7 @@ use core_graphics::event::{
 use core_graphics::geometry::CGPoint;
 
 const TOP_LIMIT: f64 = 8.0;
-const ENABLE_SHIFT_BYPASS: bool = false;
+const ENABLE_SHIFT_BYPASS: bool = true;
 
 // Use Vec since that's what the API requires
 static EVENTS_OF_INTEREST: &[CGEventType] = &[
