@@ -48,7 +48,7 @@ rm ~/Library/LaunchAgents/com.joshvoigts.topbounce.plist
 ## Notes
 
 - Requires **Accessibility permissions**:
-  1. Open **System Settings → Privacy & Security → Accessibility**
+  1. Open **System Settings → Privacy & Security → Device Control and Data Access**
   2. Click the **+** button
   3. Navigate to `~/.cargo/bin/top-bounce` and add it
   4. Go to "Login Items & Extensions"
