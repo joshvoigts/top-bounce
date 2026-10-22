@@ -55,6 +55,7 @@ rm ~/Library/LaunchAgents/com.joshvoigts.topbounce.plist
   5. Ensure top-bounce is enabled (sometimes toggling it can help)
 - Hold **Shift** while moving the mouse to temporarily bypass the restriction.
 - The top limit is set to 8 pixels by default.
+- Every mouse event that carries a position (move, drag, and button down/up) is clamped, so a click lands where the app sees the cursor.
 - Does not seem to work properly on macs with the "notch".
 
 ## Troubleshooting

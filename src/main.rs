@@ -1,16 +1,30 @@
 use core_foundation::runloop::{kCFRunLoopDefaultMode, CFRunLoop};
 use core_graphics::event::{
-  CGEventTap, CGEventTapLocation, CGEventTapOptions,
-  CGEventTapPlacement, CGEventType, CallbackResult,
+  CGEvent, CGEventFlags, CGEventTap, CGEventTapLocation,
+  CGEventTapOptions, CGEventTapPlacement, CGEventType,
+  CallbackResult,
 };
 use core_graphics::geometry::CGPoint;
+use std::time::Duration;
 
 const TOP_LIMIT: f64 = 8.0;
 const ENABLE_SHIFT_BYPASS: bool = true;
 
-// Use Vec since that's what the API requires
-static EVENTS_OF_INTEREST: &[CGEventType] =
-  &[CGEventType::MouseMoved, CGEventType::LeftMouseDragged];
+// Every event that carries a cursor position. Clamping only the movement
+// events leaves clicks reporting the raw position, so they land at whatever
+// is 8px above the position the app was told the cursor is at.
+static EVENTS_OF_INTEREST: &[CGEventType] = &[
+  CGEventType::MouseMoved,
+  CGEventType::LeftMouseDown,
+  CGEventType::LeftMouseUp,
+  CGEventType::LeftMouseDragged,
+  CGEventType::RightMouseDown,
+  CGEventType::RightMouseUp,
+  CGEventType::RightMouseDragged,
+  CGEventType::OtherMouseDown,
+  CGEventType::OtherMouseUp,
+  CGEventType::OtherMouseDragged,
+];
 
 fn main() {
   // Check accessibility permissions
@@ -27,8 +41,9 @@ fn main() {
     EVENTS_OF_INTEREST.to_vec(),
     |_proxy: *const std::ffi::c_void,
      etype: CGEventType,
-     event: &core_graphics::event::CGEvent| {
-      // Re-enable tap if it was disabled
+     event: &CGEvent| {
+      // A tap disabled by the system cannot be re-enabled from inside this
+      // callback, so just let the event through.
       if matches!(
         etype,
         CGEventType::TapDisabledByTimeout
@@ -37,31 +52,18 @@ fn main() {
         return CallbackResult::Keep;
       }
 
-      // Only process mouse moved and left mouse dragged
-      if !matches!(
-        etype,
-        CGEventType::MouseMoved | CGEventType::LeftMouseDragged
-      ) {
-        return CallbackResult::Keep;
-      }
-
       // Shift bypass
       if ENABLE_SHIFT_BYPASS
-        && event.get_flags().contains(
-          core_graphics::event::CGEventFlags::CGEventFlagShift,
-        )
+        && event.get_flags().contains(CGEventFlags::CGEventFlagShift)
       {
         return CallbackResult::Keep;
       }
 
-      // Early exit: if mouse is already above the limit, do nothing
+      // Clamp movement and button events alike
       let location = event.location();
-      if location.y >= TOP_LIMIT {
-        return CallbackResult::Keep;
+      if location.y < TOP_LIMIT {
+        event.set_location(CGPoint::new(location.x, TOP_LIMIT));
       }
-
-      // Clamp cursor to limit
-      event.set_location(CGPoint::new(location.x, TOP_LIMIT));
 
       CallbackResult::Keep
     },
@@ -96,7 +98,7 @@ fn is_process_trusted() -> bool {
       // Then exit, which will cause the tap to be dropped
       let _ = CFRunLoop::run_in_mode(
         unsafe { kCFRunLoopDefaultMode },
-        std::time::Duration::from_millis(100),
+        Duration::from_millis(100),
         false,
       );
     },
