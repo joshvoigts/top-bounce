@@ -52,6 +52,13 @@ fn main() {
         return CallbackResult::Keep;
       }
 
+      // Location first: most events are nowhere near the limit, and this
+      // skips the flags fetch on the hot path.
+      let location = event.location();
+      if location.y >= TOP_LIMIT {
+        return CallbackResult::Keep;
+      }
+
       // Shift bypass
       if ENABLE_SHIFT_BYPASS
         && event.get_flags().contains(CGEventFlags::CGEventFlagShift)
@@ -60,10 +67,7 @@ fn main() {
       }
 
       // Clamp movement and button events alike
-      let location = event.location();
-      if location.y < TOP_LIMIT {
-        event.set_location(CGPoint::new(location.x, TOP_LIMIT));
-      }
+      event.set_location(CGPoint::new(location.x, TOP_LIMIT));
 
       CallbackResult::Keep
     },
